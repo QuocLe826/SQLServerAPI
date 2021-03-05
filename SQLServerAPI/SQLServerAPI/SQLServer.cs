@@ -179,5 +179,54 @@ namespace SQLServer
             var result = ExecuteDataTable(query);
             return result != null && result.Rows.Count > 0;
         }
+
+        /// <summary>
+        /// Kiểm tra kết nối đến SQL Server
+        /// </summary>
+        /// <param name="dataSource"></param>
+        /// <param name="initialCatalog"></param>
+        /// <param name="userId"></param>
+        /// <param name="password"></param>
+        /// <returns></returns>
+        public static bool CheckConnection(string dataSource, string initialCatalog, string userId, string password)
+        {
+            try
+            {
+                var connectionString = string.Format(@"Data Source={0}; Initial Catalog={1}; User ID={2};Password={3}",
+                    dataSource.Trim(), initialCatalog.Trim(), userId.Trim(), password.Trim());
+                var dbConnection = new SqlConnection(connectionString);
+                if (dbConnection.State == ConnectionState.Closed || dbConnection.State == ConnectionState.Broken)
+                {
+                    DbConnection.Open();
+                }
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Kiểm tra kết nối đến SQL Server
+        /// </summary>
+        /// <param name="connectionString"></param>
+        /// <returns></returns>
+        public static bool CheckConnection(string connectionString)
+        {
+            try
+            {
+                var dbConnection = new SqlConnection(connectionString);
+                if (dbConnection.State == ConnectionState.Closed || dbConnection.State == ConnectionState.Broken)
+                {
+                    DbConnection.Open();
+                }
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
     }
 }
