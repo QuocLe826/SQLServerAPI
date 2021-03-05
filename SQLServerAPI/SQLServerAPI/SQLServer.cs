@@ -197,7 +197,7 @@ namespace SQLServer
                 var dbConnection = new SqlConnection(connectionString);
                 if (dbConnection.State == ConnectionState.Closed || dbConnection.State == ConnectionState.Broken)
                 {
-                    DbConnection.Open();
+                    dbConnection.Open();
                 }
                 return true;
             }
@@ -219,7 +219,7 @@ namespace SQLServer
                 var dbConnection = new SqlConnection(connectionString);
                 if (dbConnection.State == ConnectionState.Closed || dbConnection.State == ConnectionState.Broken)
                 {
-                    DbConnection.Open();
+                    dbConnection.Open();
                 }
                 return true;
             }
