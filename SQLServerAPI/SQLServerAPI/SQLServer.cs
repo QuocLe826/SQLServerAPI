@@ -1,24 +1,24 @@
 ﻿using System.Data;
 using System.Data.SqlClient;
 
-namespace SQLServer
+namespace SQLServerAPI
 {
-    public static class API
+    public  class Database
     {
         /// <summary>
         /// Chuỗi kết nối đến database SQL Server
         /// </summary>
-        public static string ConnectionString { get; set; }
+        public  string ConnectionString { get; set; }
 
         /// <summary>
         /// Biến chứa dữ liệu kết nối đến SQL Server
         /// </summary>
-        public static SqlConnection DbConnection { get; set; }
+        public SqlConnection DbConnection { get; set; }
 
         /// <summary>
         /// Biến chứa transaction của Database kết nối
         /// </summary>
-        public static SqlTransaction DbTransaction { get; set; }
+        public  SqlTransaction DbTransaction { get; set; }
 
         /// <summary>
         /// Thiết lập dữ liệu connection string
@@ -27,7 +27,7 @@ namespace SQLServer
         /// <param name="initialCatalog"></param>
         /// <param name="userId"></param>
         /// <param name="password"></param>
-        public static void SetConnectionData(string dataSource, string initialCatalog, string userId, string password)
+        public  void SetConnectionData(string dataSource, string initialCatalog, string userId, string password)
         {
             ConnectionString = string.Format(@"Data Source={0}; Initial Catalog={1}; User ID={2};Password={3}",
                 dataSource.Trim(), initialCatalog.Trim(), userId.Trim(), password.Trim());
@@ -37,7 +37,7 @@ namespace SQLServer
         /// Mở kết nối database 
         /// </summary>
         /// <returns></returns>
-        public static SqlConnection OpenConnection()
+        public SqlConnection OpenConnection()
         {
             DbConnection = new SqlConnection(ConnectionString);
             if (DbConnection.State == ConnectionState.Closed || DbConnection.State == ConnectionState.Broken)
@@ -54,7 +54,7 @@ namespace SQLServer
         /// <param name="commandType"></param>
         /// <param name="parameters"></param>
         /// <returns></returns>
-        public static int ExecuteNonQuery(string query, CommandType commandType = CommandType.Text, params SqlParameter[] parameters)
+        public int ExecuteNonQuery(string query, CommandType commandType = CommandType.Text, params SqlParameter[] parameters)
         {
             if (DbConnection != null && !string.IsNullOrEmpty(DbConnection.ConnectionString) && DbConnection.State != ConnectionState.Closed)
             {
@@ -90,7 +90,7 @@ namespace SQLServer
         /// <param name="commandType"></param>
         /// <param name="parameters"></param>
         /// <returns></returns>
-        public static object ExecuteScalar(string query, CommandType commandType = CommandType.Text, params SqlParameter[] parameters)
+        public object ExecuteScalar(string query, CommandType commandType = CommandType.Text, params SqlParameter[] parameters)
         {
             if (DbConnection != null && !string.IsNullOrEmpty(DbConnection.ConnectionString) && DbConnection.State != ConnectionState.Closed)
             {
@@ -126,7 +126,7 @@ namespace SQLServer
         /// <param name="commandType"></param>
         /// <param name="parameters"></param>
         /// <returns></returns>
-        public static DataTable ExecuteDataTable(string query, CommandType commandType = CommandType.Text, params SqlParameter[] parameters)
+        public DataTable ExecuteDataTable(string query, CommandType commandType = CommandType.Text, params SqlParameter[] parameters)
         {
             var dtSet = new DataTable();
             if (DbConnection != null && !string.IsNullOrEmpty(DbConnection.ConnectionString) && DbConnection.State != ConnectionState.Closed)
@@ -169,7 +169,7 @@ namespace SQLServer
         /// </summary>
         /// <param name="databaseName"></param>
         /// <returns></returns>
-        public static bool CheckExistsDatabase(string databaseName)
+        public bool CheckExistsDatabase(string databaseName)
         {
             var query = string.Format(@"IF EXISTS (SELECT 1 FROM master.dbo.sysdatabases WHERE NAME = '{0}')
                             begin
@@ -188,7 +188,7 @@ namespace SQLServer
         /// <param name="userId"></param>
         /// <param name="password"></param>
         /// <returns></returns>
-        public static bool CheckConnection(string dataSource, string initialCatalog, string userId, string password)
+        public bool CheckConnection(string dataSource, string initialCatalog, string userId, string password)
         {
             try
             {
@@ -212,7 +212,7 @@ namespace SQLServer
         /// </summary>
         /// <param name="connectionString"></param>
         /// <returns></returns>
-        public static bool CheckConnection(string connectionString)
+        public bool CheckConnection(string connectionString)
         {
             try
             {
@@ -227,6 +227,29 @@ namespace SQLServer
             {
                 return false;
             }
+        }
+
+        /// <summary>
+        /// Lấy danh sách database
+        /// </summary>
+        /// <returns></returns>
+        public DataTable GetListDatabase()
+        {
+            var query = @"select database_id, name from sys.databases where name not in('master', 'tempdb', 'model', 'msdb')";
+            return ExecuteDataTable(query);
+        }
+
+        /// <summary>
+        /// Kiểm tra table có tồn tại
+        /// </summary>
+        /// <param name="databaseName"></param>
+        /// <param name="tableName"></param>
+        /// <returns></returns>
+        public bool CheckTableExist(string databaseName, string tableName)
+        {
+            var query = string.Format(@"use {0};
+                                        select 1 from INFORMATION_SCHEMA.TABLES where TABLE_NAME = '{1}';", databaseName, tableName);
+            return ExecuteDataTable(query).Rows.Count > 0;
         }
     }
 }
