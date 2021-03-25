@@ -184,6 +184,31 @@ namespace SQLServerAPI
         /// </summary>
         /// <param name="dataSource"></param>
         /// <param name="initialCatalog"></param>
+        /// <returns></returns>
+        public bool CheckConnection(string dataSource, string initialCatalog)
+        {
+            try
+            {
+                var connectionString = string.Format(@"Data Source={0}; Initial Catalog={1}",
+                    dataSource.Trim(), initialCatalog.Trim());
+                var dbConnection = new SqlConnection(connectionString);
+                if (dbConnection.State == ConnectionState.Closed || dbConnection.State == ConnectionState.Broken)
+                {
+                    dbConnection.Open();
+                }
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Kiểm tra kết nối đến SQL Server
+        /// </summary>
+        /// <param name="dataSource"></param>
+        /// <param name="initialCatalog"></param>
         /// <param name="userId"></param>
         /// <param name="password"></param>
         /// <returns></returns>
@@ -246,17 +271,23 @@ namespace SQLServerAPI
         /// <returns></returns>
         public bool CheckTableExists(string databaseName, string tableName)
         {
-            //Check database exists
-            var dbExists = CheckDatabaseExists(databaseName);
-            if(!dbExists)
-            {
-                return false;
-            }
-
-            //Check table exists
             var query = string.Format(@"use {0};
                                         select 1 from INFORMATION_SCHEMA.TABLES where TABLE_NAME = '{1}';", databaseName, tableName);
             return ExecuteDataTable(query).Rows.Count > 0;
+        }
+
+        /// <summary>
+        /// Lấy danh sách các cột của bảng
+        /// </summary>
+        /// <param name="databaseName"></param>
+        /// <param name="tableName"></param>
+        /// <returns></returns>
+        public DataTable GetColumnTable(string databaseName, string tableName)
+        {
+            var query = string.Format(@"use {0}
+                        select COLUMN_NAME, COLUMN_DEFAULT, IS_NULLABLE, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH 
+                        from INFORMATION_SCHEMA.COLUMNS where TABLE_NAME = '{1}'", databaseName, tableName);
+            return ExecuteDataTable(query);
         }
     }
 }
