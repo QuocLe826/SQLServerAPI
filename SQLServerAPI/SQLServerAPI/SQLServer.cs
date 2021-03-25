@@ -3,7 +3,7 @@ using System.Data.SqlClient;
 
 namespace SQLServerAPI
 {
-    public  class Database
+    public class DatabaseProvider
     {
         /// <summary>
         /// Chuỗi kết nối đến database SQL Server
@@ -169,13 +169,12 @@ namespace SQLServerAPI
         /// </summary>
         /// <param name="databaseName"></param>
         /// <returns></returns>
-        public bool CheckExistsDatabase(string databaseName)
+        public bool CheckDatabaseExists(string databaseName)
         {
             var query = string.Format(@"IF EXISTS (SELECT 1 FROM master.dbo.sysdatabases WHERE NAME = '{0}')
                             begin
 	                            select 1
                             end", databaseName);
-
             var result = ExecuteDataTable(query);
             return result != null && result.Rows.Count > 0;
         }
@@ -245,8 +244,16 @@ namespace SQLServerAPI
         /// <param name="databaseName"></param>
         /// <param name="tableName"></param>
         /// <returns></returns>
-        public bool CheckTableExist(string databaseName, string tableName)
+        public bool CheckTableExists(string databaseName, string tableName)
         {
+            //Check database exists
+            var dbExists = CheckDatabaseExists(databaseName);
+            if(!dbExists)
+            {
+                return false;
+            }
+
+            //Check table exists
             var query = string.Format(@"use {0};
                                         select 1 from INFORMATION_SCHEMA.TABLES where TABLE_NAME = '{1}';", databaseName, tableName);
             return ExecuteDataTable(query).Rows.Count > 0;
