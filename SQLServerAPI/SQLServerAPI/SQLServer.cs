@@ -271,8 +271,8 @@ namespace SQLServerAPI
         /// <returns></returns>
         public bool CheckTableExists(string databaseName, string tableName)
         {
-            var query = string.Format(@"use {0};
-                                        select 1 from INFORMATION_SCHEMA.TABLES where TABLE_NAME = '{1}';", databaseName, tableName);
+            var query = string.Format(@"use {0}
+                                        select 1 from INFORMATION_SCHEMA.TABLES where TABLE_NAME = '{1}'", databaseName, tableName);
             return ExecuteDataTable(query).Rows.Count > 0;
         }
 
@@ -288,6 +288,73 @@ namespace SQLServerAPI
                         select COLUMN_NAME, COLUMN_DEFAULT, IS_NULLABLE, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH 
                         from INFORMATION_SCHEMA.COLUMNS where TABLE_NAME = '{1}'", databaseName, tableName);
             return ExecuteDataTable(query);
+        }
+
+        /// <summary>
+        /// Xóa database
+        /// </summary>
+        /// <param name="databaseName"></param>
+        /// <returns></returns>
+        public bool DropDatabase(string databaseName)
+        {
+            var query = string.Format(@"use master
+                                        drop database {0}", databaseName);
+            return ExecuteNonQuery(query) == -1;
+        }
+
+        /// <summary>
+        /// Xóa bảng
+        /// </summary>
+        /// <param name="databaseName"></param>
+        /// <param name="tableName"></param>
+        /// <returns></returns>
+        public bool DropTable(string databaseName, string tableName)
+        {
+            var query = string.Format(@"use {0}
+                                        drop table {0}", databaseName, tableName);
+            return ExecuteNonQuery(query) == -1;
+        }
+
+        /// <summary>
+        /// Lấy cấu trúc của bảng
+        /// </summary>
+        /// <param name="databaseName"></param>
+        /// <param name="tableName"></param>
+        /// <returns></returns>
+        public DataTable GetStructureTable(string databaseName, string tableName)
+        {
+            var query = string.Format(@"use {0}
+                                        select top 0 * from {1}", databaseName, tableName);
+            return ExecuteDataTable(query);
+        }
+
+        /// <summary>
+        /// Kiểm tra store procedure có tồn tại
+        /// </summary>
+        /// <param name="databaseName"></param>
+        /// <param name="storeProcedure"></param>
+        /// <returns></returns>
+        public bool CheckStoreProcedureExists(string databaseName, string storeProcedure)
+        {
+            var query = string.Format(@"use {0}
+                                        select 1 from sys.objects WHERE type = 'P' and name = '{1}'", databaseName, storeProcedure);
+            return ExecuteDataTable(query, CommandType.Text).Rows.Count > 0;
+        }
+
+        /// <summary>
+        /// Kiểm tra function có tồn tại
+        /// </summary>
+        /// <param name="databaseName"></param>
+        /// <param name="functionName"></param>
+        /// <returns></returns>
+        public bool CheckFunctionExists(string databaseName, string functionName)
+        {
+            var query = string.Format(@"use {0}
+                                    if OBJECT_ID('{1}') is not null
+                                    begin
+	                                    select 1
+                                    end", databaseName, functionName);
+            return ExecuteDataTable(query).Rows.Count > 0;
         }
     }
 }
